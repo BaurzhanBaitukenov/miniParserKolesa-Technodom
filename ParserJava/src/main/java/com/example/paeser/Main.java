@@ -46,33 +46,57 @@ public class Main {
 
 
         // KOLESA
-//        MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
-//        MongoDatabase database = mongoClient.getDatabase("parser");
-//        MongoCollection<org.bson.Document> collection = database.getCollection("prices");
-//
-//        int page = 2;
-//        int itemsScraped = 0;
-//
-//        while (itemsScraped < 1000) {
-//            String website = "https://kolesa.kz/cars/?page=" + page;
-//            Document doc = Jsoup.connect(website).get();
-//            Elements prices = doc.select(".a-card__price");
-//            Elements titles = doc.select(".a-card__title");
-//
-//            int itemsInThisPage = Math.min(prices.size(), 1000);
-//
-//            for (int i = 0; i < itemsInThisPage; i++) {
-//                org.bson.Document document = new org.bson.Document("title", titles.get(i).text())
-//                        .append("price", prices.get(i).text());
-//                collection.insertOne(document);
-//                itemsScraped++;
-//
-//                if (itemsScraped >= 1000) {
-//                    break;
-//                }
-//            }
-//            page++;
-//        }
+        MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017/");
+        MongoDatabase database = mongoClient.getDatabase("parser");
+        MongoCollection<org.bson.Document> collection = database.getCollection("prices");
+
+        int page = 2;
+        int itemsScraped = 0;
+
+        while (itemsScraped < 1000) {
+            String website = "https://kolesa.kz/cars/?page=" + page;
+            Document doc = Jsoup.connect(website).get();
+            Elements prices = doc.select(".a-card__price");
+            Elements titles = doc.select(".a-card__title");
+            Elements year = doc.select(".a-card__description");
+            Elements wearAndTear = doc.select(".a-card__description");
+            Elements description = doc.select(".a-card__description");
+            Elements volume = doc.select(".a-card__description");
+
+            int itemsInThisPage = Math.min(prices.size(), 1000);
+
+            for (int i = 0; i < itemsInThisPage; i++) {
+                String tempYear = year.get(i).text();
+                String yearSplit = tempYear.replaceAll("\\s+", "").split("\\.")[0];
+
+                String tempWearAndTear = wearAndTear.get(i).text();
+                String[] parts = tempWearAndTear.split(",");
+                String carType = parts[1].trim();
+
+                String tempVolume = volume.get(i).text();
+                String[] partsVolume = tempVolume.split(",");
+                String volumeRes = partsVolume[2].trim();
+
+                String priceStr = prices.get(i).text();
+                int priceInt = Integer.parseInt(priceStr.replaceAll("[^\\d.]", ""));
+
+                int yearInt = Integer.parseInt(yearSplit.replaceAll("[^\\d.]", ""));
+
+                org.bson.Document document = new org.bson.Document("title", titles.get(i).text())
+                        .append("price", priceInt)
+                        .append("year", yearInt)
+                        .append("volume", volumeRes)
+                        .append("car type", carType)
+                        .append("description", description.get(i).text());
+                collection.insertOne(document);
+                itemsScraped++;
+
+                if (itemsScraped >= 1000) {
+                    break;
+                }
+            }
+            page++;
+        }
 
 
 
