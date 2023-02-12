@@ -58,6 +58,13 @@ public class Main2 {
                         color += firstWord;
                     }
                 }
+                
+                
+                String model = "";
+                String[] ModelWords = text.split(" ");
+                String thirdWord = ModelWords[2];
+                String fourthWord = ModelWords[3];
+                model += thirdWord + " " + fourthWord;
 
                 Element secondPTag = year.select("p").get(1);
                 Element secondPTag2 = DisplayDiagonalInch.select("p").get(3);
